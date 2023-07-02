@@ -1,3 +1,10 @@
+# Minecraft Copilot Mod
+
+This is the Java Mod that runs Minecraft Copilot in the game.
+
+# From this point this README has been inflated from this ZIP file :
+https://files.minecraftforge.net/net/minecraftforge/forge/index_1.20.1.html
+Then click on MDK logo
 
 Source installation information for modders
 -------------------------------------------
