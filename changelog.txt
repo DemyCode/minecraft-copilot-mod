@@ -1,6 +1,76 @@
 1.20.x Changelog
+47.1
+====
+ - 47.1.43 Enhance LivingBreathEvent and LivingDrownEvent. Closes #9680
+           Also remove 3.5MB of useless data from the installer.
+ - 47.1.42 Partially revert LazyOptional changes, now no longer internally uses weak references.
+ - 47.1.41 Make LazyOptional's internal references to invalidation listeners use WeakReference, and allow modders to unregister themselves. Closes #8805
+ - 47.1.40 Revert EntityEvent.Size changes to before #9018 was called. (#9679)
+           Kept newly added methods for binary compatibility but deprecated them all for removal.
+           The entire pose/eye/size system needs to be reevaluated and address some of Mojang's changes.
+           However this should fix any bugs that pulling that PR may of caused.
+ - 47.1.39 Add a config option to restore the calculate all normals behavior in case some setups require old broken behavior. (#9670)
+ - 47.1.38 Fix rounding errors on models with 45 degree normals by favoring one Direction (#9669)
+           Should fix flickering issues when breaking custom models and having our vanilla solution disabled.
+ - 47.1.37 Moved ForgeHooksClient.onCreativeModeTabBuildContents to ForgeHooks to fix #9662
+ - 47.1.36 Fix tag removal functionality that broke during the 1.19 update. Closes #9053 and #8949
+ - 47.1.35 Replace string with forge tag in vanilla recipes. Closes #9062
+ - 47.1.34 Fix new brain hooks not persisting active activities.
+ - 47.1.33 Fix breaking overlay flickering on campfires by using vanilla method to calculate block normals. (#9664)
+ - 47.1.32 Cleanup usages of static imports and build script so that our build doesn't spam useless error like messages.
+           So that it is easier to see real errors.
+           Add compatibility checking to standard testing tasks.
+ - 47.1.31 Added Action value to PlayerInteractEvent.LeftClickEvent to expose what action fired the event. #9175
+ - 47.1.30 Fix parameter names in IForgeDimensionSpecialEffects.adjustLightmapColors to better describe what they are. (#9656)
+ - 47.1.29 Re-add EntityEvent.Size methods to maintain bincompat
+ - 47.1.28 Added LivingMakeBrainEvent, to allow a consistent way for modders to manipulate entity Brains. #9292
+ - 47.1.27 Add LivingSwapHandItemsEvent
+ - 47.1.26 Fixed FluidUtil#tryFillContainer returning invalid result when simulating #9358
+ - 47.1.25 Re-add in-game mod menu (#9652)
+ - 47.1.24 Fix Entity eye height for multipart entities.
+ - 47.1.23 Fix conflicting keybindings not having the correct click count set. #9360
+ - 47.1.22 Fix the Emissive Rendering for Experimental Light Pipeline (#9651)
+ - 47.1.21 Fixed AdvancementsScreen.java.patch buttons not rendering (#9649)
+ - 47.1.20 Properly Handle Fluid Updates while in a Boat #9428
+ - 47.1.19 New hook in IClientBlockExtensions to handle enabling tinting on breaking particles. #9446
+ - 47.1.18 Fix invalid index when ticking itemstacks in a player nventory by adding a new onInventoryTick event. Closes #9453
+ - 47.1.17 Make the FireworkShapes enum extensible (Closes #9486)
+ - 47.1.16 Add `EmptyEnergyStorage` (#9487)
+ - 47.1.15 Support IPv6 address compression for logged IPs
+ - 47.1.14 Make item name rendering and status bar rendering respect additional gui overlays being rendered by mods (#9648)
+ - 47.1.13 Fix EyeHeight event being fired twice (#9647)
+ - 47.1.12 Add PlayerSpawnPhantomsEvent, utilized to block or forcefully allow PhantomSpawner to spawn phantoms (#9644)
+ - 47.1.11 Fix creative mode screen not correctly using CreativeModeTab::getTabsImage (#9627)
+ - 47.1.10 Add option to advertise dedicated servers to LAN.
+ - 47.1.9  Fix entity eye height loop.
+ - 47.1.8  Particle Description Data Provider.
+ - 47.1.7  Add LivingBreatheEvent and LivingDrownEvent (#9525)
+ - 47.1.6  Fix entity size event not being fired, changed it to split eye height and size calculations. (#9535)
+ - 47.1.5  AlterGroundEvent for modifying block placement performed by AlterGroundDecorator (#9637)
+ - 47.1.4  Change ProjectileHitEvent to return a result instead of being cancelable. Closes #9642
+ - 47.1.3  Replace static import with regular one to fix S2S and non-official mappings. (#9633)
+ - 47.1.2  Add missing null check for TagsProvider#existingFileHelper (#9638)
+ - 47.1.1  Add GuiGraphics helpers for blitNineSliced and blitRepeating that support specifying a custom texture size (#9641)
+ - 47.1.0  1.20.1 Recommended Build
+
 47.0
 ====
+ - 47.0.50 Fix FMLOnly loading. Closes #9609
+ - 47.0.49 Improve logging for server connections (#9618)
+ - 47.0.48 Fix placing fluids into waterlogged blocks with FluidUtil::tryPlaceFluid. To behave more like vanilla MC-127110 (#9586)
+ - 47.0.47 Expose loaded RegistryAccess through AddReloadListenerEvent (#9613)
+ - 47.0.46 Fix GLM applying to entities when killed. Closes #9551
+ - 47.0.45 Add unordered creative tabs after vanilla and perform a second level sorting of tabs by registry name to ensure tabs are ordered the same between game restarts (#9612)
+ - 47.0.44 Fix Early Loading window FPS snafu where it could spam (#9619)
+           unlimited screen updates. Probably a good way to gently toast an ancient laptop.
+ - 47.0.43 Make overloads consistent for defineListAllowEmpty in ForgeConfigSpec.Builder (#9604)
+ - 47.0.42 Moved GameShuttingDownEvent hook to DedicatedServer class. Fixes #9601
+ - 47.0.41 Fix PitcherCropBlock not calling canSustainPlant, not allowing it to be placed on custom farmland. Close #9611
+ - 47.0.40 Add null check to NetworkHooks.openScreen. Closes #9597
+ - 47.0.39 Fix ShieldBlockEvent not correctly performing damaged functions when not all damage is blocked. (#9615)
+ - 47.0.38 Add IP address to client disconnect message. Closes #9603
+ - 47.0.37 Fix hotbar items not dimming when sleeping in bed. Closes #9616
+ - 47.0.36 Bump Eventbus to address NullPointerException when classloading things on some threads. Closes #9570
  - 47.0.35 Try and be a bit nicer about handling bad [feature] definitions  (#9606)
            * Try and be a bit nicer about handling bad [feature] definitions - they're single square bracket defined and require strings for feature bound values.
            * Some more tweaks to the feature system to output useful and well formatted error messages when bounds fail. Requires SPI 7.0.1 and the language string "fml.modloading.feature.missing" has changed.
