@@ -206,3 +206,10 @@ publishing {
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8' // Use the UTF-8 charset for Java compilation
 }
+
+dependencies {
+    implementation("ai.djl.onnxruntime:onnxruntime-engine:0.23.0") {
+        exclude group: "com.microsoft.onnxruntime", module: "onnxruntime"
+    }
+    implementation "com.microsoft.onnxruntime:onnxruntime_gpu:1.14.0"
+}
