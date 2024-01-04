@@ -1,4 +1,3 @@
 {
-    "java.configuration.updateBuildConfiguration": "interactive",
-    "files.insertFinalNewline": true
+    "java.compile.nullAnalysis.mode": "automatic"
 }
