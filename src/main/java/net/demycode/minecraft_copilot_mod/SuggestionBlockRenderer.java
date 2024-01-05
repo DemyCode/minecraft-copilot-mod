@@ -4,19 +4,31 @@
 
 // import net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher;
 // import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
+// import net.minecraft.core.BlockPos;
 // import net.minecraft.world.level.block.entity.BlockEntity;
 // import net.minecraft.world.level.block.state.BlockState;
 
-// // FakeBlockRenderer.java
-// public class SuggestionBlockRenderer extends BlockEntityRenderer<BlockEntity> {
 
-//     public SuggestionBlockRenderernderer(BlockEntityRenderDispatcher dispatcher) {
+// class SuggestionBlockEntity extends BlockEntity {
+//     public SuggestionBlockEntity(BlockPos pos, BlockState state) {
+//         super(SuggestionBlockEntity.get(), pos, state);
+//     }
+
+//     public static BlockEntityType<SuggestionBlockEntity> get() {
+//         return 
+//     }
+// }
+
+// public class SuggestionBlockRenderer extends BlockEntityRenderer<SuggestionBlockEntity> {
+
+//     public SuggestionBlockRenderer(BlockEntityRenderDispatcher dispatcher) {
 //         super(dispatcher);
 //     }
 
 //     @Override
-//     public void render(FakeBlockEntity blockEntity, float tickDelta, MatrixStack matrices,
-//             VertexConsumerProvider vertexConsumers, int light, int overlay) {
+//     public void render(
+//             FakeBlockEntity blockEntity, float tickDelta, MatrixStack matrices, VertexConsumerProvider vertexConsumers,
+//             int light, int overlay) {
 //         matrices.push();
 
 //         matrices.translate(64, 64, 64); // Set the position
