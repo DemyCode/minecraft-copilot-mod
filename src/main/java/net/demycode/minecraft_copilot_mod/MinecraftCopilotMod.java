@@ -2,18 +2,21 @@ package net.demycode.minecraft_copilot_mod;
 
 import org.slf4j.Logger;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.logging.LogUtils;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.BlockRenderDispatcher;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.client.model.data.ModelData;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.TickEvent.ClientTickEvent;
+import net.minecraftforge.event.TickEvent.RenderTickEvent;
 import net.minecraftforge.event.level.BlockEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.ModLoadingContext;
@@ -68,38 +71,39 @@ public class MinecraftCopilotMod {
         LOGGER.info("Block placed");
         LOGGER.info("BLOCK >> {}", event.getState().getBlock());
         Minecraft mc = Minecraft.getInstance();
+        if (mc.player == null)
+            return;
         LOGGER.info(event.getEntity().toString());
         LOGGER.info(mc.player.toString());
         lastPos = event.getPos();
         lastState = event.getState();
     }
 
-    public void displayFakeDirtBlock(ClientTickEvent event) {
+    public void displayFakeDirtBlock(RenderTickEvent event) {
         Minecraft mc = Minecraft.getInstance();
         // https://forums.minecraftforge.net/topic/113773-1182-rendering-a-block-model-clientside-only/
-        if (lastPos == null || lastState == null)
+        if (lastPos == null || lastState == null || mc.level == null || mc.player == null)
             return;
         BlockState bs = lastState;
         BlockPos bp = lastPos;
         BlockRenderDispatcher renderer = Minecraft.getInstance().getBlockRenderer();
-        ModelData modelData = mc.level.getModelDataManager().getAt(bp);
+        ModelData modelData = renderer.getBlockModel(bs).getModelData(mc.level, bp, bs,
+                mc.level.getModelDataManager().getAt(bp));
 
-        PoseStack matrix = new PoseStack();
+        PoseStack matrix = RenderSystem.getModelViewStack();
         matrix.pushPose();
         matrix.translate(
-                bp.getX(),
-                bp.getY() + 1,
-                bp.getZ());
-        LOGGER.info("Calling renderSingleBlock with {}, {}, {}, {}, {}, {}, {}, {}",
-                bs, matrix, mc.renderBuffers().crumblingBufferSource(), 15728880,
-                OverlayTexture.NO_OVERLAY, modelData, null);
+                bp.getX() - mc.player.getX(),
+                bp.getY() - mc.player.getY(),
+                bp.getZ() - mc.player.getZ());
         renderer.renderSingleBlock(
-                bs, matrix,
+                bs,
+                matrix,
                 mc.renderBuffers().crumblingBufferSource(),
                 15728880,
-                OverlayTexture.NO_OVERLAY,
+                OverlayTexture.RED_OVERLAY_V,
                 modelData,
-                null);
-        // matrix.popPose();
+                RenderType.solid());
+        matrix.popPose();
     }
 }
