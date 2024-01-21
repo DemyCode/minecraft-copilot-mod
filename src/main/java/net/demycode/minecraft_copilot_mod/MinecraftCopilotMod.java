@@ -2,7 +2,6 @@ package net.demycode.minecraft_copilot_mod;
 
 import org.slf4j.Logger;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.logging.LogUtils;
 
@@ -12,11 +11,11 @@ import net.minecraft.client.renderer.block.BlockRenderDispatcher;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.client.event.RenderLevelStageEvent;
 import net.minecraftforge.client.model.data.ModelData;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.TickEvent.RenderTickEvent;
 import net.minecraftforge.event.level.BlockEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.ModLoadingContext;
@@ -79,10 +78,11 @@ public class MinecraftCopilotMod {
         lastState = event.getState();
     }
 
-    public void displayFakeDirtBlock(RenderTickEvent event) {
+    public void displayFakeDirtBlock(RenderLevelStageEvent event) {
         Minecraft mc = Minecraft.getInstance();
         // https://forums.minecraftforge.net/topic/113773-1182-rendering-a-block-model-clientside-only/
-        if (lastPos == null || lastState == null || mc.level == null || mc.player == null)
+        if (lastPos == null || lastState == null || mc.level == null || mc.player == null
+                || mc.getCameraEntity() == null)
             return;
         BlockState bs = lastState;
         BlockPos bp = lastPos;
@@ -90,12 +90,10 @@ public class MinecraftCopilotMod {
         ModelData modelData = renderer.getBlockModel(bs).getModelData(mc.level, bp, bs,
                 mc.level.getModelDataManager().getAt(bp));
 
-        PoseStack matrix = RenderSystem.getModelViewStack();
+        Vec3 view = Minecraft.getInstance().getEntityRenderDispatcher().camera.getPosition();
+        PoseStack matrix = event.getPoseStack();
         matrix.pushPose();
-        matrix.translate(
-                bp.getX() - mc.player.getX(),
-                bp.getY() - mc.player.getY(),
-                bp.getZ() - mc.player.getZ());
+        matrix.translate(bp.getX() - view.x, bp.getY() + 1 - view.y, bp.getZ() - view.z);
         renderer.renderSingleBlock(
                 bs,
                 matrix,
