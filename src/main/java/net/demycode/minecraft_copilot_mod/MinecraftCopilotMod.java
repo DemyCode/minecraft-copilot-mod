@@ -79,6 +79,8 @@ public class MinecraftCopilotMod {
     }
 
     public void displayFakeDirtBlock(RenderLevelStageEvent event) {
+        if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_LEVEL)
+            return;
         Minecraft mc = Minecraft.getInstance();
         // https://forums.minecraftforge.net/topic/113773-1182-rendering-a-block-model-clientside-only/
         if (lastPos == null || lastState == null || mc.level == null || mc.player == null
@@ -99,9 +101,9 @@ public class MinecraftCopilotMod {
                 matrix,
                 mc.renderBuffers().crumblingBufferSource(),
                 15728880,
-                OverlayTexture.RED_OVERLAY_V,
+                OverlayTexture.NO_WHITE_U,
                 modelData,
-                RenderType.solid());
+                RenderType.translucent());
         matrix.popPose();
     }
 }
