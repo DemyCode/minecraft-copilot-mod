@@ -37,6 +37,8 @@ public class MinecraftCopilotMod {
     public BlockPos lastPos = null;
     public BlockState lastState = null;
 
+    public BlockProposer blockProposer = new BlockProposer(null);
+
     public MinecraftCopilotMod() {
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
         IEventBus forgeEventBus = MinecraftForge.EVENT_BUS;
@@ -70,22 +72,35 @@ public class MinecraftCopilotMod {
         LOGGER.info("Block placed");
         LOGGER.info("BLOCK >> {}", event.getState().getBlock());
         Minecraft mc = Minecraft.getInstance();
-        if (mc.player == null)
+        if (mc.player == null || mc.getCameraEntity() == null || mc.level == null)
             return;
         LOGGER.info(event.getEntity().toString());
         LOGGER.info(mc.player.toString());
         lastPos = event.getPos();
         lastState = event.getState();
+
+        BlockState[][][] blockRegion = new BlockState[16][16][16];
+        for (int x = 0; x < 16; x++)
+            for (int y = 0; y < 16; y++)
+                for (int z = 0; z < 16; z++)
+                    blockRegion[x][y][z] = Blocks.DIRT.defaultBlockState();
+
+        blockProposer.interrupt();
+        blockProposer = new BlockProposer(blockRegion);
+        blockProposer.start();
     }
 
+    // https://github.com/AdvancedXRay/XRay-Mod/blob/main/src/main/java/pro/mikey/xray/xray/Render.java#L16
     public void displayFakeDirtBlock(RenderLevelStageEvent event) {
         Minecraft mc = Minecraft.getInstance();
         if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_SOLID_BLOCKS)
             return;
-        // https://github.com/AdvancedXRay/XRay-Mod/blob/main/src/main/java/pro/mikey/xray/xray/Render.java#L16
         if (lastPos == null || lastState == null || mc.level == null || mc.player == null
                 || mc.getCameraEntity() == null)
             return;
+        if (blockProposer.isAlive())
+            return;
+
         BlockState bs = lastState;
         BlockPos bp = lastPos;
         BlockRenderDispatcher renderer = Minecraft.getInstance().getBlockRenderer();
@@ -94,16 +109,23 @@ public class MinecraftCopilotMod {
 
         Vec3 view = Minecraft.getInstance().getEntityRenderDispatcher().camera.getPosition();
         PoseStack matrix = event.getPoseStack();
-        matrix.pushPose();
-        matrix.translate(bp.getX() - view.x, bp.getY() + 1 - view.y, bp.getZ() - view.z);
-        renderer.renderSingleBlock(
-                bs,
-                matrix,
-                mc.renderBuffers().crumblingBufferSource(),
-                15728880,
-                OverlayTexture.NO_OVERLAY,
-                modelData,
-                RenderType.translucent());
-        matrix.popPose();
+        for (int x = 0; x < 16; x++) {
+            for (int y = 0; y < 16; y++) {
+                for (int z = 0; z < 16; z++) {
+                    matrix.pushPose();
+                    matrix.translate(-view.x() + bp.getX() + x, -view.y() + bp.getY() + y,
+                            -view.z() + bp.getZ() + z);
+                    renderer.renderSingleBlock(
+                            blockProposer.resultBlockRegion[x][y][z],
+                            matrix,
+                            mc.renderBuffers().crumblingBufferSource(),
+                            15728880,
+                            OverlayTexture.NO_OVERLAY,
+                            modelData,
+                            RenderType.translucent());
+                    matrix.popPose();
+                }
+            }
+        }
     }
 }
