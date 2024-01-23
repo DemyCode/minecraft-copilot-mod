@@ -8,6 +8,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    if: contains(github.event.head_commit.message, 'chore(release):')
     steps:
       - name: Create GitHub App Token
         uses: actions/create-github-app-token@v1.6.3
@@ -28,5 +29,5 @@ jobs:
           git config --global user.name "DemyCode"
           git config --global user.email "verycols@gmail.com"
       - run: |
-          commit-and-tag-version -m "[skip ci] chore(release): %s"
+          commit-and-tag-version -m "chore(release): %s"
       - run: git push --follow-tags
