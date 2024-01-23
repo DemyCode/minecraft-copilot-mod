@@ -25,7 +25,7 @@ jobs:
           node-version: 21
       - run: npm install -g commit-and-tag-version
       - run: |
-          git config --global user.name "BananaMan"
+          git config --global user.name "DemyCode"
           git config --global user.email "verycols@gmail.com"
       - run: |
           commit-and-tag-version -m "[skip ci] chore(release): %s"
