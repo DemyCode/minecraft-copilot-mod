@@ -29,5 +29,5 @@ jobs:
           git config --global user.name "DemyCode"
           git config --global user.email "verycols@gmail.com"
       - run: |
-          commit-and-tag-version -m "chore(release): %s"
+          commit-and-tag-version
       - run: git push --follow-tags
