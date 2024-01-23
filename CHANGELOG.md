@@ -7,6 +7,13 @@ All notable changes to this project will be documented in this file. See [commit
 
 ### Features
 
+* adding sem release ([8570951](https://github.com/DemyCode/minecraft-copilot-mod/commit/85709513b2c83a604134d578fe165ae5264e255c))
+
+## 1.1.0 (2024-01-23)
+
+
+### Features
+
 * displaying flying block ([192fb79](https://github.com-demycode/DemyCode/minecraft-copilot-mod/commit/192fb79b6828235097e77180b5fc0393873b3e4b))
 * editing the mod name and identity ([fed970f](https://github.com-demycode/DemyCode/minecraft-copilot-mod/commit/fed970f88cd7fced02e650f55fa2773b81e7380c))
 * init alignment for minecraft copilot mod ([c110703](https://github.com-demycode/DemyCode/minecraft-copilot-mod/commit/c110703e5627507c9eae84b09162f322017dd804))
