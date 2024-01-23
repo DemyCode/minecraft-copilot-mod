@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [1.1.2](https://github.com/DemyCode/minecraft-copilot-mod/compare/v1.1.1...v1.1.2) (2024-01-23)
+
+
+### Bug Fixes
+
+* putting chore(release) in if of github actions ([40e3843](https://github.com/DemyCode/minecraft-copilot-mod/commit/40e38432945896ff0d35b234dd2d514ad5609b97))
+* setting chore release check to false ([855ee2a](https://github.com/DemyCode/minecraft-copilot-mod/commit/855ee2aa65c5e898ccd00b063d75b6d72994f296))
+* switchting to startwith ([f7b72cb](https://github.com/DemyCode/minecraft-copilot-mod/commit/f7b72cb930204604dad9eb616bfd5c7b1caf4d84))
+* swithcing back to DemyCOde commiter ([28b1eff](https://github.com/DemyCode/minecraft-copilot-mod/commit/28b1eff73f3fa45031665cc356b81e15561d73d5))
+
 ## [1.1.4](https://github.com-demycode/DemyCode/minecraft-copilot-mod/compare/v1.1.3...v1.1.4) (2024-01-23)
 
 ## [1.1.3](https://github.com-demycode/DemyCode/minecraft-copilot-mod/compare/v1.1.2...v1.1.3) (2024-01-23)
