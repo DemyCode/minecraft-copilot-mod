@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [1.1.1](https://github.com/DemyCode/minecraft-copilot-mod/compare/v1.0.1...v1.1.1) (2024-01-23)
+
+
+### Bug Fixes
+
+* set fetch depth to 0 ([c227d6e](https://github.com/DemyCode/minecraft-copilot-mod/commit/c227d6e3120bd1c98c44e0bcedbbcc5579192628))
+
 ## 1.0.1 (2024-01-23)
 
 
