@@ -5,6 +5,8 @@ import org.slf4j.Logger;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.logging.LogUtils;
 
+import ai.onnxruntime.OrtEnvironment;
+import ai.onnxruntime.OrtSession;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.BlockRenderDispatcher;
@@ -37,7 +39,10 @@ public class MinecraftCopilotMod {
     public BlockPos lastPos = null;
     public BlockState lastState = null;
 
-    public BlockProposer blockProposer = new BlockProposer(null);
+    public BlockProposer blockProposer = null;
+
+    public OrtSession session = null;
+    public OrtEnvironment env = null;
 
     public MinecraftCopilotMod() {
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
@@ -66,6 +71,19 @@ public class MinecraftCopilotMod {
         // Some client setup code
         LOGGER.info("HELLO FROM CLIENT SETUP");
         LOGGER.info("MINECRAFT NAME >> {}", Minecraft.getInstance().getUser().getName());
+        env = OrtEnvironment.getEnvironment();
+        int gpuDeviceId = 0; // The GPU device ID to execute on
+        var sessionOptions = new OrtSession.SessionOptions();
+        try {
+            sessionOptions.addCUDA(gpuDeviceId);
+        } catch (Exception e) {
+            System.out.println("CUDA not available, using CPU");
+        }
+        try {
+            session = env.createSession("model.onnx", sessionOptions);
+        } catch (Exception e) {
+            System.out.println("Failed to create session");
+        }
     }
 
     public void placedBlockEvent(BlockEvent.EntityPlaceEvent event) {
@@ -85,8 +103,9 @@ public class MinecraftCopilotMod {
                 for (int z = 0; z < 16; z++)
                     blockRegion[x][y][z] = Blocks.DIRT.defaultBlockState();
 
-        blockProposer.interrupt();
-        blockProposer = new BlockProposer(blockRegion);
+        if (blockProposer != null)
+            blockProposer.interrupt();
+        blockProposer = new BlockProposer(blockRegion, session, env);
         blockProposer.start();
     }
 
