@@ -19,6 +19,7 @@ jobs:
         with:
           token: ${{ steps.generate-token.outputs.token }}
           submodules: recursive
+          fetch-depth: 0
       - uses: actions/setup-node@v4.0.1
         with:
           node-version: 21
