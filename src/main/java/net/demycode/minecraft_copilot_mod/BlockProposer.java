@@ -2,9 +2,7 @@ package net.demycode.minecraft_copilot_mod;
 
 import java.util.Map;
 
-import ai.onnxruntime.OnnxTensor;
-import ai.onnxruntime.OrtEnvironment;
-import ai.onnxruntime.OrtSession;
+import ai.onnxruntime.*;
 import ai.onnxruntime.OrtSession.Result;
 import net.minecraft.world.level.block.state.BlockState;
 

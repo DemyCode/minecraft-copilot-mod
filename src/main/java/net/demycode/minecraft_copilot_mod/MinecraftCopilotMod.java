@@ -5,8 +5,7 @@ import org.slf4j.Logger;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.logging.LogUtils;
 
-import ai.onnxruntime.OrtEnvironment;
-import ai.onnxruntime.OrtSession;
+import ai.onnxruntime.*;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.BlockRenderDispatcher;
@@ -84,6 +83,7 @@ public class MinecraftCopilotMod {
             session = env.createSession("model.onnx", sessionOptions);
         } catch (Exception e) {
             System.out.println("Failed to create session");
+            System.out.println(e.getMessage());
         }
     }
 

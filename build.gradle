@@ -145,8 +145,8 @@ dependencies {
     // For more info:
     // http://www.gradle.org/docs/current/userguide/artifact_dependencies_tutorial.html
     // http://www.gradle.org/docs/current/userguide/dependency_management.html
-    implementation("com.microsoft.onnxruntime:onnxruntime:1.17.0")
-    implementation("com.microsoft.onnxruntime:onnxruntime_gpu:1.17.0")
+    minecraftLibrary 'com.microsoft.onnxruntime:onnxruntime:1.17.0'
+    minecraftLibrary 'com.microsoft.onnxruntime:onnxruntime_gpu:1.17.0'
 }
 
 // This block of code expands all declared replace properties in the specified resource targets.
@@ -184,6 +184,11 @@ tasks.named('jar', Jar).configure {
 
     // This is the preferred method to reobfuscate your jar file
     finalizedBy 'reobfJar'
+
+    dependencies {
+        implementation 'com.microsoft.onnxruntime:onnxruntime:1.17.0'
+        implementation 'com.microsoft.onnxruntime:onnxruntime_gpu:1.17.0'
+    }
 }
 
 // However if you are in a multi-project build, dev time needs unobfed jar files, so you can delay the obfuscation until publishing by doing:
