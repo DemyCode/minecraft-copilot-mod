@@ -188,6 +188,10 @@ tasks.named('jar', Jar).configure {
     dependencies {
         implementation 'com.microsoft.onnxruntime:onnxruntime:1.17.0'
         implementation 'com.microsoft.onnxruntime:onnxruntime_gpu:1.17.0'
+        implementation platform('software.amazon.awssdk:bom:2.21.1')
+        implementation 'software.amazon.awssdk:s3'
+        implementation 'software.amazon.awssdk:sso'
+        implementation 'software.amazon.awssdk:ssooidc'
     }
 }
 

@@ -11,6 +11,7 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.BlockRenderDispatcher;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
@@ -25,7 +26,6 @@ import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-import net.minecraftforge.registries.ForgeRegistries;
 
 // The value here should match an entry in the META-INF/mods.toml file
 @Mod(MinecraftCopilotMod.MODID)
@@ -39,6 +39,7 @@ public class MinecraftCopilotMod {
     public BlockState lastState = null;
 
     public BlockProposer blockProposer = null;
+    public ModelDownloader modelDownloader = null;
 
     public OrtSession session = null;
     public OrtEnvironment env = null;
@@ -57,42 +58,47 @@ public class MinecraftCopilotMod {
 
     private void commonSetup(final FMLCommonSetupEvent event) {
         // Some common setup code
-        LOGGER.info("HELLO FROM COMMON SETUP");
-
-        if (Config.logDirtBlock)
-            LOGGER.info("DIRT BLOCK >> {}", ForgeRegistries.BLOCKS.getKey(Blocks.DIRT));
-
-        LOGGER.info(Config.magicNumberIntroduction + Config.magicNumber);
-
-        Config.items.forEach((item) -> LOGGER.info("ITEM >> {}", item.toString()));
+        LOGGER.info("HELLO FROM MINECRAFT COPILOT");
     }
 
     public void onClientSetup(FMLClientSetupEvent event) {
         // Some client setup code
-        LOGGER.info("HELLO FROM CLIENT SETUP");
-        LOGGER.info("MINECRAFT NAME >> {}", Minecraft.getInstance().getUser().getName());
-        env = OrtEnvironment.getEnvironment();
-        int gpuDeviceId = 0; // The GPU device ID to execute on
-        var sessionOptions = new OrtSession.SessionOptions();
-        try {
-            sessionOptions.addCUDA(gpuDeviceId);
-        } catch (Exception e) {
-            System.out.println("CUDA not available, using CPU");
-        }
-        try {
-            session = env.createSession("model.onnx", sessionOptions);
-        } catch (Exception e) {
-            System.out.println("Failed to create session");
-            System.out.println(e.getMessage());
-        }
+        LOGGER.info("HELLO FROM MINECRAFT COPILOT CLIENT");
     }
 
     public void placedBlockEvent(BlockEvent.EntityPlaceEvent event) {
-        LOGGER.info("Block placed");
-        LOGGER.info("BLOCK >> {}", event.getState().getBlock());
         Minecraft mc = Minecraft.getInstance();
-        if (mc.player == null || mc.getCameraEntity() == null || mc.level == null)
+        if (modelDownloader == null) {
+            modelDownloader = new ModelDownloader("model.onnx");
+            modelDownloader.start();
+            Component message = Component.literal("Model download started");
+            mc.player.sendSystemMessage(message);
             return;
+        }
+        if (!modelDownloader.isDownloaded) {
+            mc.player.sendSystemMessage(Component.literal("Model not downloaded yet"));
+            return;
+        }
+        if (env == null) {
+            env = OrtEnvironment.getEnvironment();
+            int gpuDeviceId = 0; // The GPU device ID to execute on
+            var sessionOptions = new OrtSession.SessionOptions();
+            try {
+                sessionOptions.addCUDA(gpuDeviceId);
+            } catch (Exception e) {
+                System.out.println("Failed to add CUDA");
+                mc.player.sendSystemMessage(Component.literal("CUDA not available. Performance will be degraded."));
+                e.printStackTrace();
+            }
+            try {
+                // We download the model and always save it as "model.onnx"
+                session = env.createSession("model.onnx", sessionOptions);
+            } catch (Exception e) {
+                System.out.println("Failed to create session");
+                mc.player.sendSystemMessage(Component.literal("Failed to create session. Minecraft Copilot won't be available."));
+                e.printStackTrace();
+            }
+        }
         LOGGER.info(event.getEntity().toString());
         LOGGER.info(mc.player.toString());
         lastPos = event.getPos();
