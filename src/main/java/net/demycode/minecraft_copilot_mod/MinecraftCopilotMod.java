@@ -49,6 +49,7 @@ public class MinecraftCopilotMod {
         IEventBus forgeEventBus = MinecraftForge.EVENT_BUS;
 
         modEventBus.addListener(this::commonSetup);
+        modEventBus.addListener(this::onClientSetup);
         forgeEventBus.addListener(this::placedBlockEvent);
         forgeEventBus.addListener(this::displayFakeDirtBlock);
         MinecraftForge.EVENT_BUS.register(this);
@@ -117,7 +118,7 @@ public class MinecraftCopilotMod {
         if (lastPos == null || lastState == null || mc.level == null || mc.player == null
                 || mc.getCameraEntity() == null)
             return;
-        if (blockProposer.isAlive())
+        if (blockProposer == null || blockProposer.isAlive())
             return;
 
         BlockState bs = lastState;

@@ -145,6 +145,8 @@ dependencies {
     // For more info:
     // http://www.gradle.org/docs/current/userguide/artifact_dependencies_tutorial.html
     // http://www.gradle.org/docs/current/userguide/dependency_management.html
+    implementation("com.microsoft.onnxruntime:onnxruntime:1.17.0")
+    implementation("com.microsoft.onnxruntime:onnxruntime_gpu:1.17.0")
 }
 
 // This block of code expands all declared replace properties in the specified resource targets.
@@ -205,11 +207,4 @@ publishing {
 
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8' // Use the UTF-8 charset for Java compilation
-}
-
-dependencies {
-    implementation("ai.djl.onnxruntime:onnxruntime-engine:0.23.0") {
-        exclude group: "com.microsoft.onnxruntime", module: "onnxruntime"
-    }
-    implementation "com.microsoft.onnxruntime:onnxruntime_gpu:1.14.0"
 }
