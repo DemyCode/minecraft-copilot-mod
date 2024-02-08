@@ -1,5 +1,7 @@
 package net.demycode.minecraft_copilot_mod;
 
+import java.util.Map;
+
 import org.slf4j.Logger;
 
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -27,6 +29,7 @@ import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 
+
 // The value here should match an entry in the META-INF/mods.toml file
 @Mod(MinecraftCopilotMod.MODID)
 public class MinecraftCopilotMod {
@@ -44,6 +47,9 @@ public class MinecraftCopilotMod {
     public OrtSession session = null;
     public OrtEnvironment env = null;
 
+    public Map<String, Integer> minecraft_id_to_copilot_id = null;
+    public Map<Integer, String> copilot_id_to_minecraft_id = null;
+
     public MinecraftCopilotMod() {
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
         IEventBus forgeEventBus = MinecraftForge.EVENT_BUS;
@@ -51,7 +57,7 @@ public class MinecraftCopilotMod {
         modEventBus.addListener(this::commonSetup);
         modEventBus.addListener(this::onClientSetup);
         forgeEventBus.addListener(this::placedBlockEvent);
-        forgeEventBus.addListener(this::displayFakeDirtBlock);
+        forgeEventBus.addListener(this::renderLevel);
         MinecraftForge.EVENT_BUS.register(this);
         ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, Config.SPEC);
     }
@@ -68,15 +74,25 @@ public class MinecraftCopilotMod {
 
     public void placedBlockEvent(BlockEvent.EntityPlaceEvent event) {
         Minecraft mc = Minecraft.getInstance();
-        if (modelDownloader == null) {
-            modelDownloader = new ModelDownloader("model.onnx");
-            modelDownloader.start();
-            Component message = Component.literal("Model download started");
+        if (event.getEntity() != mc.player)
+            return;
+        if (this.modelDownloader == null) {
+            this.modelDownloader = new ModelDownloader("model.onnx");
+            this.modelDownloader.start();
+            Component message = Component.literal("Minecraft Copilot: Model download started");
             mc.player.sendSystemMessage(message);
             return;
         }
-        if (!modelDownloader.isDownloaded) {
-            mc.player.sendSystemMessage(Component.literal("Model not downloaded yet"));
+        if (this.modelDownloader.isAlive()) {
+            Component message = Component.literal("Minecraft Copilot: Model download in progress");
+            mc.player.sendSystemMessage(message);
+            return;
+        }
+        if (!this.modelDownloader.isDownloaded) {
+            Component message = Component.literal("Minecraft Copilot: Model download failed. Retrying download.");
+            mc.player.sendSystemMessage(message);
+            this.modelDownloader = new ModelDownloader("model.onnx");
+            this.modelDownloader.start();
             return;
         }
         if (env == null) {
@@ -87,15 +103,17 @@ public class MinecraftCopilotMod {
                 sessionOptions.addCUDA(gpuDeviceId);
             } catch (Exception e) {
                 System.out.println("Failed to add CUDA");
-                mc.player.sendSystemMessage(Component.literal("CUDA not available. Performance will be degraded."));
+                mc.player.sendSystemMessage(
+                        Component.literal("Minecraft Copilot: CUDA not available. Performance will be degraded."));
                 e.printStackTrace();
             }
             try {
-                // We download the model and always save it as "model.onnx"
                 session = env.createSession("model.onnx", sessionOptions);
             } catch (Exception e) {
                 System.out.println("Failed to create session");
-                mc.player.sendSystemMessage(Component.literal("Failed to create session. Minecraft Copilot won't be available."));
+                mc.player.sendSystemMessage(
+                        Component.literal(
+                                "Minecraft Copilot: Failed to create session. Minecraft Copilot will be deactivated until the next restart."));
                 e.printStackTrace();
             }
         }
@@ -108,7 +126,12 @@ public class MinecraftCopilotMod {
         for (int x = 0; x < 16; x++)
             for (int y = 0; y < 16; y++)
                 for (int z = 0; z < 16; z++)
-                    blockRegion[x][y][z] = Blocks.DIRT.defaultBlockState();
+                    blockRegion[x][y][z] = mc.level.getBlockState(event.getPos().offset(x, y, z));
+        int[][][] blockRegionInt = new int[16][16][16];
+        for (int x = 0; x < 16; x++)
+            for (int y = 0; y < 16; y++)
+                for (int z = 0; z < 16; z++)
+                    blockRegionInt[x][y][z] = blockRegion[x][y][z].getBlock() == Blocks.AIR ? 0 : 1;
 
         if (blockProposer != null)
             blockProposer.interrupt();
@@ -117,7 +140,7 @@ public class MinecraftCopilotMod {
     }
 
     // https://github.com/AdvancedXRay/XRay-Mod/blob/main/src/main/java/pro/mikey/xray/xray/Render.java#L16
-    public void displayFakeDirtBlock(RenderLevelStageEvent event) {
+    public void renderLevel(RenderLevelStageEvent event) {
         Minecraft mc = Minecraft.getInstance();
         if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_SOLID_BLOCKS)
             return;
