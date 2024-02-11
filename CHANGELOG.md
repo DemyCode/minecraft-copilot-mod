@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [1.5.0](https://github.com/DemyCode/minecraft-copilot-mod/compare/v1.4.0...v1.5.0) (2024-02-11)
+
+
+### Features
+
+* ending onnx runtime inference through onnx.model ([486be2b](https://github.com/DemyCode/minecraft-copilot-mod/commit/486be2b1bd683d8094b2eefcdca3c30755d9b4bf))
+
 ## [1.4.0](https://github.com/DemyCode/minecraft-copilot-mod/compare/v1.3.1...v1.4.0) (2024-02-11)
 
 
