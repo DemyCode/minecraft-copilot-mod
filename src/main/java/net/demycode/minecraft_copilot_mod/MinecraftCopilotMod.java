@@ -7,14 +7,15 @@ import org.slf4j.Logger;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.logging.LogUtils;
 
-import ai.onnxruntime.*;
+import ai.onnxruntime.OrtEnvironment;
+import ai.onnxruntime.OrtSession;
+import ai.onnxruntime.OrtSession.SessionOptions;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.BlockRenderDispatcher;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.client.event.RenderLevelStageEvent;
@@ -26,9 +27,7 @@ import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
-import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-
 
 // The value here should match an entry in the META-INF/mods.toml file
 @Mod(MinecraftCopilotMod.MODID)
@@ -42,10 +41,15 @@ public class MinecraftCopilotMod {
     public BlockState lastState = null;
 
     public BlockProposer blockProposer = null;
-    public ModelDownloader modelDownloader = null;
+    public String remoteModelPath = "https://minecraft-copilot-models.s3.amazonaws.com/best_model.onnx";
+    public String remoteJsonIdToIntPath = "https://minecraft-copilot-models.s3.amazonaws.com/unique_blocks_dict.json";
+    public String localModelPath = "model.onnx";
+    public String localJsonIdToIntPath = "id_to_int.json";
+    public ModelDownloader modelDownloader = new ModelDownloader(remoteModelPath, remoteJsonIdToIntPath, localModelPath,
+            localJsonIdToIntPath);
 
     public OrtSession session = null;
-    public OrtEnvironment env = null;
+    public OrtEnvironment env = OrtEnvironment.getEnvironment();
 
     public Map<String, Integer> minecraft_id_to_copilot_id = null;
     public Map<Integer, String> copilot_id_to_minecraft_id = null;
@@ -54,7 +58,6 @@ public class MinecraftCopilotMod {
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
         IEventBus forgeEventBus = MinecraftForge.EVENT_BUS;
 
-        modEventBus.addListener(this::commonSetup);
         modEventBus.addListener(this::onClientSetup);
         forgeEventBus.addListener(this::placedBlockEvent);
         forgeEventBus.addListener(this::renderLevel);
@@ -62,43 +65,27 @@ public class MinecraftCopilotMod {
         ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, Config.SPEC);
     }
 
-    private void commonSetup(final FMLCommonSetupEvent event) {
-        // Some common setup code
-        LOGGER.info("HELLO FROM MINECRAFT COPILOT");
-    }
-
     public void onClientSetup(FMLClientSetupEvent event) {
         // Some client setup code
         LOGGER.info("HELLO FROM MINECRAFT COPILOT CLIENT");
+        modelDownloader = new ModelDownloader(remoteModelPath, remoteJsonIdToIntPath, localModelPath,
+                localJsonIdToIntPath);
+        modelDownloader.start();
     }
 
     public void placedBlockEvent(BlockEvent.EntityPlaceEvent event) {
         Minecraft mc = Minecraft.getInstance();
-        if (event.getEntity() != mc.player)
-            return;
-        if (this.modelDownloader == null) {
-            this.modelDownloader = new ModelDownloader("model.onnx");
-            this.modelDownloader.start();
-            Component message = Component.literal("Minecraft Copilot: Model download started");
-            mc.player.sendSystemMessage(message);
-            return;
-        }
         if (this.modelDownloader.isAlive()) {
-            Component message = Component.literal("Minecraft Copilot: Model download in progress");
-            mc.player.sendSystemMessage(message);
+            mc.player.sendSystemMessage(Component.literal("Minecraft Copilot: Model download still in progress"));
             return;
         }
         if (!this.modelDownloader.isDownloaded) {
-            Component message = Component.literal("Minecraft Copilot: Model download failed. Retrying download.");
-            mc.player.sendSystemMessage(message);
-            this.modelDownloader = new ModelDownloader("model.onnx");
-            this.modelDownloader.start();
+            mc.player.sendSystemMessage(Component.literal("Minecraft Copilot: Model download failed"));
             return;
         }
-        if (env == null) {
-            env = OrtEnvironment.getEnvironment();
-            int gpuDeviceId = 0; // The GPU device ID to execute on
-            var sessionOptions = new OrtSession.SessionOptions();
+        int gpuDeviceId = 0; // The GPU device ID to execute on
+        if (session == null) {
+            SessionOptions sessionOptions = new OrtSession.SessionOptions();
             try {
                 sessionOptions.addCUDA(gpuDeviceId);
             } catch (Exception e) {
@@ -112,31 +99,27 @@ public class MinecraftCopilotMod {
             } catch (Exception e) {
                 System.out.println("Failed to create session");
                 mc.player.sendSystemMessage(
-                        Component.literal(
-                                "Minecraft Copilot: Failed to create session. Minecraft Copilot will be deactivated until the next restart."));
+                        Component.literal("Minecraft Copilot: Failed to create session."));
                 e.printStackTrace();
+            } finally {
+                sessionOptions.close();
+                System.out.println("Session created");
+                mc.player.sendSystemMessage(
+                        Component.literal("Minecraft Copilot: ONNX session created. Ready to assist."));
             }
         }
-        LOGGER.info(event.getEntity().toString());
-        LOGGER.info(mc.player.toString());
-        lastPos = event.getPos();
-        lastState = event.getState();
 
-        BlockState[][][] blockRegion = new BlockState[16][16][16];
-        for (int x = 0; x < 16; x++)
-            for (int y = 0; y < 16; y++)
-                for (int z = 0; z < 16; z++)
-                    blockRegion[x][y][z] = mc.level.getBlockState(event.getPos().offset(x, y, z));
-        int[][][] blockRegionInt = new int[16][16][16];
-        for (int x = 0; x < 16; x++)
-            for (int y = 0; y < 16; y++)
-                for (int z = 0; z < 16; z++)
-                    blockRegionInt[x][y][z] = blockRegion[x][y][z].getBlock() == Blocks.AIR ? 0 : 1;
-
-        if (blockProposer != null)
-            blockProposer.interrupt();
-        blockProposer = new BlockProposer(blockRegion, session, env);
-        blockProposer.start();
+        BlockPos pos = event.getPos();
+        BlockState state = mc.level.getBlockState(pos);
+        lastPos = pos;
+        lastState = state;
+        for (int x = 0; x < 16; x++) {
+            for (int y = 0; y < 16; y++) {
+                for (int z = 0; z < 16; z++) {
+                    System.out.println(mc.level.getBlockState(pos.offset(x, y, z)).getBlock().getDescriptionId());
+                }
+            }
+        }
     }
 
     // https://github.com/AdvancedXRay/XRay-Mod/blob/main/src/main/java/pro/mikey/xray/xray/Render.java#L16
@@ -152,11 +135,11 @@ public class MinecraftCopilotMod {
 
         BlockState bs = lastState;
         BlockPos bp = lastPos;
-        BlockRenderDispatcher renderer = Minecraft.getInstance().getBlockRenderer();
+        BlockRenderDispatcher renderer = mc.getBlockRenderer();
         ModelData modelData = renderer.getBlockModel(bs).getModelData(mc.level, bp, bs,
                 mc.level.getModelDataManager().getAt(bp));
-
-        Vec3 view = Minecraft.getInstance().getEntityRenderDispatcher().camera.getPosition();
+    
+        Vec3 view = mc.getEntityRenderDispatcher().camera.getPosition();
         PoseStack matrix = event.getPoseStack();
         for (int x = 0; x < 16; x++) {
             for (int y = 0; y < 16; y++) {

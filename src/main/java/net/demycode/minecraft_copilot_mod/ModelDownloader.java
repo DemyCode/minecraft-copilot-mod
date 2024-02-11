@@ -1,35 +1,44 @@
 package net.demycode.minecraft_copilot_mod;
 
-import java.io.File;
-
-import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import java.io.BufferedInputStream;
+import java.io.FileOutputStream;
+import java.net.URL;
 
 public class ModelDownloader extends Thread {
-    public String modelId = null;
+    public String modelPath = null;
+    public String jsonIdToInt = null;
+    public String localModelPath = null;
+    public String localJsonIdToIntPath = null;
     public boolean isDownloaded = false;
 
-    public ModelDownloader(String modelId) {
-        this.modelId = modelId;
+    public ModelDownloader(String remoteModelPath, String remoteJsonIdToIntPath,
+            String localModelPath, String localJsonIdToIntPath) {
+        this.modelPath = remoteModelPath;
+        this.jsonIdToInt = remoteJsonIdToIntPath;
+        this.localModelPath = localModelPath;
+        this.localJsonIdToIntPath = localJsonIdToIntPath;
+    }
+
+    public void download(String remoteFilePath, String localFilePath) {
+        try {
+            URL url = new URL(remoteFilePath);
+            BufferedInputStream in = new BufferedInputStream(url.openStream());
+            FileOutputStream fileOutputStream = new FileOutputStream(localFilePath);
+            byte dataBuffer[] = new byte[1024];
+            int bytesRead;
+            while ((bytesRead = in.read(dataBuffer, 0, 1024)) != -1) {
+                fileOutputStream.write(dataBuffer, 0, bytesRead);
+            }
+            fileOutputStream.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
     public void run() {
-        this.isDownloaded = false;
-        S3Client s3 = S3Client.builder().region(Region.EU_WEST_3).build();
-        File localFile = new File("model.onnx");
-        GetObjectRequest getObjectRequest = GetObjectRequest
-                .builder()
-                .bucket("minecraft-copilot-models")
-                .key(this.modelId)
-                .build();
-        try {
-            s3.getObject(getObjectRequest, localFile.toPath());
-            this.isDownloaded = true;
-        } catch (Exception e) {
-            System.out.println("Failed to download model");
-            e.printStackTrace();
-        }
+        this.download(this.jsonIdToInt, "id_to_int.json");
+        this.download(this.modelPath, "model.onnx");
+        this.isDownloaded = true;
     }
 }
