@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [1.6.0](https://github.com/DemyCode/minecraft-copilot-mod/compare/v1.5.0...v1.6.0) (2024-02-11)
+
+
+### Features
+
+* WE DONE WITH ONNX RUNTIME ([d9bf07a](https://github.com/DemyCode/minecraft-copilot-mod/commit/d9bf07a3223b53f43e936e7cb66369056ae57aa1))
+
 ## [1.5.0](https://github.com/DemyCode/minecraft-copilot-mod/compare/v1.4.0...v1.5.0) (2024-02-11)
 
 
