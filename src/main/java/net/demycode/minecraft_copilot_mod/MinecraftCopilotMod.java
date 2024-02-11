@@ -1,9 +1,12 @@
 package net.demycode.minecraft_copilot_mod;
 
+import java.io.FileReader;
 import java.util.Map;
 
 import org.slf4j.Logger;
 
+import com.google.common.reflect.TypeToken;
+import com.google.gson.Gson;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.logging.LogUtils;
 
@@ -28,6 +31,7 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.minecraftforge.registries.ForgeRegistries;
 
 // The value here should match an entry in the META-INF/mods.toml file
 @Mod(MinecraftCopilotMod.MODID)
@@ -45,14 +49,14 @@ public class MinecraftCopilotMod {
     public String remoteJsonIdToIntPath = "https://minecraft-copilot-models.s3.amazonaws.com/unique_blocks_dict.json";
     public String localModelPath = "model.onnx";
     public String localJsonIdToIntPath = "id_to_int.json";
+    public Map<String, Integer> minecraftIdToCopilotId = null;
+    public Map<Integer, String> copilotIdToMinecraftId = null;
+    public Map<String, BlockState> minecraftIdToDefaultBlockState = null;
     public ModelDownloader modelDownloader = new ModelDownloader(remoteModelPath, remoteJsonIdToIntPath, localModelPath,
             localJsonIdToIntPath);
 
     public OrtSession session = null;
     public OrtEnvironment env = OrtEnvironment.getEnvironment();
-
-    public Map<String, Integer> minecraft_id_to_copilot_id = null;
-    public Map<Integer, String> copilot_id_to_minecraft_id = null;
 
     public MinecraftCopilotMod() {
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
@@ -68,6 +72,13 @@ public class MinecraftCopilotMod {
     public void onClientSetup(FMLClientSetupEvent event) {
         // Some client setup code
         LOGGER.info("HELLO FROM MINECRAFT COPILOT CLIENT");
+        minecraftIdToDefaultBlockState = new java.util.HashMap<String, BlockState>();
+        ForgeRegistries.BLOCKS.forEach((block) -> {
+            String blockId = ForgeRegistries.BLOCKS.getKey(block).toString();
+            blockId = blockId.replaceAll("\\[.*\\]", ""); // Remove block state
+            minecraftIdToDefaultBlockState.put(blockId, block.defaultBlockState());
+        });
+        LOGGER.info(minecraftIdToDefaultBlockState.toString());
         modelDownloader = new ModelDownloader(remoteModelPath, remoteJsonIdToIntPath, localModelPath,
                 localJsonIdToIntPath);
         modelDownloader.start();
@@ -108,18 +119,48 @@ public class MinecraftCopilotMod {
                         Component.literal("Minecraft Copilot: ONNX session created. Ready to assist."));
             }
         }
+        if (minecraftIdToCopilotId == null || copilotIdToMinecraftId == null) {
+            Gson gson = new Gson();
+            FileReader reader;
+            try {
+                reader = new FileReader(this.localJsonIdToIntPath);
+            } catch (Exception e) {
+                System.out.println("Failed to read json file");
+                mc.player.sendSystemMessage(
+                        Component.literal("Minecraft Copilot: Failed to read json file."));
+                e.printStackTrace();
+                return;
+            }
+            minecraftIdToCopilotId = gson.fromJson(reader, new TypeToken<Map<String, Integer>>() {
+            }.getType());
+            copilotIdToMinecraftId = new java.util.HashMap<Integer, String>();
+            for (Map.Entry<String, Integer> entry : minecraftIdToCopilotId.entrySet()) {
+                copilotIdToMinecraftId.put(entry.getValue(), entry.getKey());
+            }
+        }
 
         BlockPos pos = event.getPos();
         BlockState state = mc.level.getBlockState(pos);
         lastPos = pos;
         lastState = state;
+        BlockState[][][] blockRegionInput = new BlockState[16][16][16];
         for (int x = 0; x < 16; x++) {
             for (int y = 0; y < 16; y++) {
                 for (int z = 0; z < 16; z++) {
-                    System.out.println(mc.level.getBlockState(pos.offset(x, y, z)).getBlock().getDescriptionId());
+                    blockRegionInput[x][y][z] = mc.level.getBlockState(pos.offset(x, y, z));
                 }
             }
         }
+        if (blockProposer != null && blockProposer.isAlive()) {
+            blockProposer.interrupt();
+        }
+        blockProposer = new BlockProposer(blockRegionInput,
+                this.session,
+                this.env,
+                this.minecraftIdToCopilotId,
+                this.copilotIdToMinecraftId,
+                this.minecraftIdToDefaultBlockState);
+        blockProposer.start();
     }
 
     // https://github.com/AdvancedXRay/XRay-Mod/blob/main/src/main/java/pro/mikey/xray/xray/Render.java#L16
@@ -138,7 +179,7 @@ public class MinecraftCopilotMod {
         BlockRenderDispatcher renderer = mc.getBlockRenderer();
         ModelData modelData = renderer.getBlockModel(bs).getModelData(mc.level, bp, bs,
                 mc.level.getModelDataManager().getAt(bp));
-    
+
         Vec3 view = mc.getEntityRenderDispatcher().camera.getPosition();
         PoseStack matrix = event.getPoseStack();
         for (int x = 0; x < 16; x++) {
