@@ -52,7 +52,10 @@ public class MinecraftCopilotMod {
     public Map<String, Integer> minecraftIdToCopilotId = null;
     public Map<Integer, String> copilotIdToMinecraftId = null;
     public Map<String, BlockState> minecraftIdToDefaultBlockState = null;
-    public ModelDownloader modelDownloader = new ModelDownloader(remoteModelPath, remoteJsonIdToIntPath, localModelPath,
+    public ModelDownloader modelDownloader = new ModelDownloader(
+            remoteModelPath,
+            remoteJsonIdToIntPath,
+            localModelPath,
             localJsonIdToIntPath);
 
     public OrtSession session = null;
@@ -79,7 +82,10 @@ public class MinecraftCopilotMod {
             minecraftIdToDefaultBlockState.put(blockId, block.defaultBlockState());
         });
         LOGGER.info(minecraftIdToDefaultBlockState.toString());
-        modelDownloader = new ModelDownloader(remoteModelPath, remoteJsonIdToIntPath, localModelPath,
+        modelDownloader = new ModelDownloader(
+                remoteModelPath,
+                remoteJsonIdToIntPath,
+                localModelPath,
                 localJsonIdToIntPath);
         modelDownloader.start();
     }
@@ -168,10 +174,15 @@ public class MinecraftCopilotMod {
         Minecraft mc = Minecraft.getInstance();
         if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_SOLID_BLOCKS)
             return;
-        if (lastPos == null || lastState == null || mc.level == null || mc.player == null
+        if (lastPos == null
+                || lastState == null
+                || mc.level == null
+                || mc.player == null
                 || mc.getCameraEntity() == null)
             return;
-        if (blockProposer == null || blockProposer.isAlive())
+        if (blockProposer == null
+                || blockProposer.isAlive()
+                || blockProposer.resultBlockRegion == null)
             return;
 
         BlockState bs = lastState;
@@ -186,7 +197,9 @@ public class MinecraftCopilotMod {
             for (int y = 0; y < 16; y++) {
                 for (int z = 0; z < 16; z++) {
                     matrix.pushPose();
-                    matrix.translate(-view.x() + bp.getX() + x, -view.y() + bp.getY() + y,
+                    matrix.translate(
+                            -view.x() + bp.getX() + x,
+                            -view.y() + bp.getY() + y,
                             -view.z() + bp.getZ() + z);
                     renderer.renderSingleBlock(
                             blockProposer.resultBlockRegion[x][y][z],

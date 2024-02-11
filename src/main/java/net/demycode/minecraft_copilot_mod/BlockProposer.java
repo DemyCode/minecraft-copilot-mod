@@ -66,7 +66,7 @@ public class BlockProposer extends Thread {
             e.printStackTrace();
         }
         Map<String, OnnxTensor> inputs = Map.of("input", tensorFromArray);
-        Result result;
+        Result result = null;
         try {
             result = session.run(inputs);
         } catch (Exception e) {
@@ -74,7 +74,6 @@ public class BlockProposer extends Thread {
             e.printStackTrace();
         }
         Optional<OnnxValue> value = result.get("output");
-        System.out.println(value);
         if (value.isPresent()) {
             OnnxValue onnxValue = value.get();
             float resultArray[][][][][] = new float[1][minecraftIdToCopilotId.size()][16][16][16];
@@ -82,6 +81,7 @@ public class BlockProposer extends Thread {
                 resultArray = (float[][][][][]) onnxValue.getValue();
             } catch (Exception e) {
                 System.out.println("Failed to get value");
+                e.printStackTrace();
             }
             this.resultBlockRegion = new BlockState[16][16][16];
             for (int i = 0; i < 16; i++) {
@@ -102,5 +102,7 @@ public class BlockProposer extends Thread {
                 }
             }
         }
+        System.out.println("BlockProposer finished");
+        System.out.println(this.resultBlockRegion);
     }
 }
