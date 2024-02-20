@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [1.6.2](https://github.com/DemyCode/minecraft-copilot-mod/compare/v1.6.1...v1.6.2) (2024-02-20)
+
+
+### Bug Fixes
+
+* only push on branches ([5fabd91](https://github.com/DemyCode/minecraft-copilot-mod/commit/5fabd9125e1eaab44d9f4cd1e7183910b5a25345))
+* using commit header for sending name to alignment ([47bb57e](https://github.com/DemyCode/minecraft-copilot-mod/commit/47bb57e1c747fd9ffe14b26172e10a0faed289d0))
+
 ## [1.6.1](https://github.com/DemyCode/minecraft-copilot-mod/compare/v1.6.0...v1.6.1) (2024-02-20)
 
 
