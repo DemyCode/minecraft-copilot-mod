@@ -34,13 +34,11 @@ public class BlockProposer extends Thread {
     public void run() {
         // Init array
         // batch size, channels, height, width, depth
-        float[][][][][] sourceArray = new float[1][minecraftIdToCopilotId.size()][16][16][16];
+        float[][][][][] sourceArray = new float[1][1][16][16][16];
         for (int i = 0; i < 16; i++) {
             for (int j = 0; j < 16; j++) {
                 for (int k = 0; k < 16; k++) {
-                    for (int l = 0; l < minecraftIdToCopilotId.size(); l++) {
-                        sourceArray[0][l][i][j][k] = 0;
-                    }
+                    sourceArray[0][0][i][j][k] = 0;
                 }
             }
         }
@@ -50,11 +48,13 @@ public class BlockProposer extends Thread {
                     BlockState block = blockRegion[i][j][k];
                     String blockId = block.getBlock().getName().getString();
                     blockId = blockId.replaceAll("\\[.*\\]", "");
-                    int idToFill = minecraftIdToCopilotId.get("minecraft:air");
+                    blockId = blockId.replaceAll("minecraft:", "");
                     if (minecraftIdToCopilotId.containsKey(blockId)) {
-                        idToFill = minecraftIdToCopilotId.get(blockId);
+                        int copilotId = minecraftIdToCopilotId.get(blockId);
+                        sourceArray[0][0][i][j][k] = copilotId;
+                    } else {
+                        sourceArray[0][0][i][j][k] = minecraftIdToCopilotId.get("minecraft:air");
                     }
-                    sourceArray[0][idToFill][i][j][k] = 1;
                 }
             }
         }
@@ -88,7 +88,7 @@ public class BlockProposer extends Thread {
                 for (int j = 0; j < 16; j++) {
                     for (int k = 0; k < 16; k++) {
                         int maxIndex = 0;
-                        float max = 0;
+                        float max = -1000000000;
                         for (int l = 0; l < minecraftIdToCopilotId.size(); l++) {
                             if (resultArray[0][l][i][j][k] > max) {
                                 max = resultArray[0][l][i][j][k];
@@ -96,13 +96,16 @@ public class BlockProposer extends Thread {
                             }
                         }
                         String blockId = copilotIdToMinecraftId.get(maxIndex);
-                        BlockState block = minecraftCopilotIdToDefaultBlockState.get(blockId);
-                        this.resultBlockRegion[i][j][k] = block;
+                        if (blockId == null) {
+                            blockId = "minecraft:air";
+                        }
+                        this.resultBlockRegion[i][j][k] = minecraftCopilotIdToDefaultBlockState.get(blockId) != null
+                                ? minecraftCopilotIdToDefaultBlockState.get(blockId)
+                                : minecraftCopilotIdToDefaultBlockState.get("minecraft:air");
                     }
                 }
             }
         }
         System.out.println("BlockProposer finished");
-        System.out.println(this.resultBlockRegion);
     }
 }

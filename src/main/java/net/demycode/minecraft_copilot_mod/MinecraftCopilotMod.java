@@ -153,11 +153,11 @@ public class MinecraftCopilotMod {
         for (int x = 0; x < 16; x++) {
             for (int y = 0; y < 16; y++) {
                 for (int z = 0; z < 16; z++) {
-                    blockRegionInput[x][y][z] = mc.level.getBlockState(pos.offset(x, y, z));
+                    blockRegionInput[x][y][z] = mc.level.getBlockState(pos.offset(x - 8, y - 4, z - 8));
                 }
             }
         }
-        if (blockProposer != null && blockProposer.isAlive()) {
+        if (blockProposer != null) {
             blockProposer.interrupt();
         }
         blockProposer = new BlockProposer(blockRegionInput,
@@ -174,15 +174,9 @@ public class MinecraftCopilotMod {
         Minecraft mc = Minecraft.getInstance();
         if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_SOLID_BLOCKS)
             return;
-        if (lastPos == null
-                || lastState == null
-                || mc.level == null
-                || mc.player == null
-                || mc.getCameraEntity() == null)
+        if (lastPos == null || lastState == null || mc.level == null || mc.player == null || mc.getCameraEntity() == null)
             return;
-        if (blockProposer == null
-                || blockProposer.isAlive()
-                || blockProposer.resultBlockRegion == null)
+        if (blockProposer == null || blockProposer.isAlive() || blockProposer.resultBlockRegion == null)
             return;
 
         BlockState bs = lastState;
@@ -198,9 +192,13 @@ public class MinecraftCopilotMod {
                 for (int z = 0; z < 16; z++) {
                     matrix.pushPose();
                     matrix.translate(
-                            -view.x() + bp.getX() + x,
-                            -view.y() + bp.getY() + y,
-                            -view.z() + bp.getZ() + z);
+                            -view.x() + bp.getX() + x - 8,
+                            -view.y() + bp.getY() + y - 4,
+                            -view.z() + bp.getZ() + z - 8);
+                    if (blockProposer.resultBlockRegion == null) {
+                        matrix.popPose();
+                        return;
+                    }
                     renderer.renderSingleBlock(
                             blockProposer.resultBlockRegion[x][y][z],
                             matrix,
