@@ -1,7 +1,10 @@
 name: Alignment
 
+
 on:
   push:
+    branches:
+      - '**'
 
 jobs:
   alignment:
