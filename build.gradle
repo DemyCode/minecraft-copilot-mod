@@ -145,8 +145,8 @@ dependencies {
     // For more info:
     // http://www.gradle.org/docs/current/userguide/artifact_dependencies_tutorial.html
     // http://www.gradle.org/docs/current/userguide/dependency_management.html
-    minecraftLibrary 'com.microsoft.onnxruntime:onnxruntime:1.17.0'
-    minecraftLibrary 'com.microsoft.onnxruntime:onnxruntime_gpu:1.17.0'
+    minecraftLibrary 'com.microsoft.onnxruntime:onnxruntime:1.13.1'
+    minecraftLibrary 'com.microsoft.onnxruntime:onnxruntime_gpu:1.13.1'
 }
 
 // This block of code expands all declared replace properties in the specified resource targets.
@@ -186,12 +186,8 @@ tasks.named('jar', Jar).configure {
     finalizedBy 'reobfJar'
 
     dependencies {
-        implementation 'com.microsoft.onnxruntime:onnxruntime:1.17.0'
-        implementation 'com.microsoft.onnxruntime:onnxruntime_gpu:1.17.0'
-        implementation platform('software.amazon.awssdk:bom:2.21.1')
-        implementation 'software.amazon.awssdk:s3'
-        implementation 'software.amazon.awssdk:sso'
-        implementation 'software.amazon.awssdk:ssooidc'
+        implementation 'com.microsoft.onnxruntime:onnxruntime:1.13.1'
+        implementation 'com.microsoft.onnxruntime:onnxruntime_gpu:1.13.1'
     }
 }
 

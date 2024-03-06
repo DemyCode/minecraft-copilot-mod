@@ -22,7 +22,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.client.event.RenderLevelStageEvent;
-import net.minecraftforge.client.model.data.ModelData;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.level.BlockEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
@@ -174,7 +173,8 @@ public class MinecraftCopilotMod {
         Minecraft mc = Minecraft.getInstance();
         if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_SOLID_BLOCKS)
             return;
-        if (lastPos == null || lastState == null || mc.level == null || mc.player == null || mc.getCameraEntity() == null)
+        if (lastPos == null || lastState == null || mc.level == null || mc.player == null
+                || mc.getCameraEntity() == null)
             return;
         if (blockProposer == null || blockProposer.isAlive() || blockProposer.resultBlockRegion == null)
             return;
@@ -182,8 +182,6 @@ public class MinecraftCopilotMod {
         BlockState bs = lastState;
         BlockPos bp = lastPos;
         BlockRenderDispatcher renderer = mc.getBlockRenderer();
-        ModelData modelData = renderer.getBlockModel(bs).getModelData(mc.level, bp, bs,
-                mc.level.getModelDataManager().getAt(bp));
 
         Vec3 view = mc.getEntityRenderDispatcher().camera.getPosition();
         PoseStack matrix = event.getPoseStack();
@@ -199,13 +197,17 @@ public class MinecraftCopilotMod {
                         matrix.popPose();
                         return;
                     }
+                    if (blockProposer.resultBlockRegion[x][y][z] == null) {
+                        matrix.popPose();
+                        continue;
+                    }
                     renderer.renderSingleBlock(
                             blockProposer.resultBlockRegion[x][y][z],
                             matrix,
                             mc.renderBuffers().crumblingBufferSource(),
                             15728880,
                             OverlayTexture.NO_OVERLAY,
-                            modelData,
+                            net.minecraftforge.client.model.data.ModelData.EMPTY,
                             RenderType.translucent());
                     matrix.popPose();
                 }

@@ -1,7 +1,10 @@
 package net.demycode.minecraft_copilot_mod;
 
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import ai.onnxruntime.OnnxTensor;
 import ai.onnxruntime.OnnxValue;
@@ -46,9 +49,10 @@ public class BlockProposer extends Thread {
             for (int j = 0; j < 16; j++) {
                 for (int k = 0; k < 16; k++) {
                     BlockState block = blockRegion[i][j][k];
-                    String blockId = block.getBlock().getName().getString();
-                    blockId = blockId.replaceAll("\\[.*\\]", "");
-                    blockId = blockId.replaceAll("minecraft:", "");
+                    String blockId = block.getBlock().defaultBlockState().toString();
+                    blockId = blockId.replaceAll("Block\\{", "");
+                    blockId = blockId.replaceAll("\\}", "");
+                    blockId = blockId.replaceAll("\\[.*\\]", ""); // Remove block state
                     if (minecraftIdToCopilotId.containsKey(blockId)) {
                         int copilotId = minecraftIdToCopilotId.get(blockId);
                         sourceArray[0][0][i][j][k] = copilotId;
@@ -65,10 +69,13 @@ public class BlockProposer extends Thread {
             System.out.println("Failed to create tensor");
             e.printStackTrace();
         }
-        Map<String, OnnxTensor> inputs = Map.of("input", tensorFromArray);
+        Map<String, OnnxTensor> inputMap = new HashMap<>();
+        Set<String> requestedOutputs = new HashSet<>();
+        inputMap.put("input", tensorFromArray);
+        requestedOutputs.add("output");
         Result result = null;
         try {
-            result = session.run(inputs);
+            result = session.run(inputMap, requestedOutputs);
         } catch (Exception e) {
             System.out.println("Failed to run session");
             e.printStackTrace();
@@ -87,21 +94,19 @@ public class BlockProposer extends Thread {
             for (int i = 0; i < 16; i++) {
                 for (int j = 0; j < 16; j++) {
                     for (int k = 0; k < 16; k++) {
-                        int maxIndex = 0;
-                        float max = -1000000000;
+                        int maxIndex = -1;
+                        float max = -999999999;
                         for (int l = 0; l < minecraftIdToCopilotId.size(); l++) {
                             if (resultArray[0][l][i][j][k] > max) {
                                 max = resultArray[0][l][i][j][k];
                                 maxIndex = l;
                             }
                         }
-                        String blockId = copilotIdToMinecraftId.get(maxIndex);
-                        if (blockId == null) {
-                            blockId = "minecraft:air";
+                        if (maxIndex == -1) {
+                            maxIndex = minecraftIdToCopilotId.get("minecraft:air");
                         }
-                        this.resultBlockRegion[i][j][k] = minecraftCopilotIdToDefaultBlockState.get(blockId) != null
-                                ? minecraftCopilotIdToDefaultBlockState.get(blockId)
-                                : minecraftCopilotIdToDefaultBlockState.get("minecraft:air");
+                        String blockId = copilotIdToMinecraftId.get(maxIndex);
+                        this.resultBlockRegion[i][j][k] = minecraftCopilotIdToDefaultBlockState.get(blockId);
                     }
                 }
             }
