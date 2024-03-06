@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [2.0.0](https://github.com/DemyCode/minecraft-copilot-mod/compare/v1.6.2...v2.0.0) (2024-03-06)
+
+
+### ⚠ BREAKING CHANGES
+
+* minecraft copilot alpha version
+
+### Features
+
+* minecraft copilot alpha version ([5edb808](https://github.com/DemyCode/minecraft-copilot-mod/commit/5edb80885e501d36cade578061d1b2934d42c282))
+
 ## [1.6.2](https://github.com/DemyCode/minecraft-copilot-mod/compare/v1.6.1...v1.6.2) (2024-02-20)
 
 
