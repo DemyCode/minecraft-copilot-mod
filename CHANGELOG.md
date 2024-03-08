@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [2.0.3](https://github.com/DemyCode/minecraft-copilot-mod/compare/v2.0.2...v2.0.3) (2024-03-08)
+
+
+### Bug Fixes
+
+* adding README.md ([80335c9](https://github.com/DemyCode/minecraft-copilot-mod/commit/80335c9382bc43077c2728cc3abc89b3b9e4c9ae))
+
 ## [2.0.2](https://github.com/DemyCode/minecraft-copilot-mod/compare/v2.0.1...v2.0.2) (2024-03-08)
 
 ## [2.0.1](https://github.com/DemyCode/minecraft-copilot-mod/compare/v2.0.0...v2.0.1) (2024-03-08)
